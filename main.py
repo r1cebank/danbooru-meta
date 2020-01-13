@@ -33,7 +33,7 @@ def ensureRating(c, rating):
 
 def createPost(c, post):
     c.execute(
-        'INSERT OR IGNORE INTO posts (id, md5, rating, width, height, file_ext, file_size, source, pixiv_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', (
+        'INSERT OR IGNORE INTO posts (post_id, md5, rating, width, height, file_ext, file_size, source, pixiv_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', (
             post['id'], post['md5'], post['rating'], post['image_width'], post[
                 'image_height'], post['file_ext'], post['file_size'], post['source'], post['pixiv_id']
         )
@@ -67,8 +67,12 @@ def updateStat(c):
 
 
 def createIndex(c):
-    c.execute('CREATE INDEX post_id ON post_tags (post_id)')
-    c.execute('CREATE INDEX tag_id ON post_tags (tag_id)')
+    c.execute('DROP INDEX IF EXISTS pt_post_id')
+    c.execute('DROP INDEX IF EXISTS pt_tag_id')
+    c.execute('DROP INDEX IF EXISTS p_post_id')
+    c.execute('CREATE INDEX pt_post_id ON post_tags (post_id)')
+    c.execute('CREATE INDEX pt_tag_id ON post_tags (tag_id)')
+    c.execute('CREATE INDEX p_post_id ON posts (post_id)')
 
 
 def main():
