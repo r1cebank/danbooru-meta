@@ -9,7 +9,7 @@ ratingDict = {
     "e": ("e", "Explicit", False)
 }
 
-COMMIT_INTERVAL = 1000
+COMMIT_INTERVAL = 10000
 
 
 def insertTags(c, postId, tags):
@@ -40,7 +40,7 @@ def createPost(c, post):
     )
 
 
-def ProcessLargeTextFile(db, filepath):
+def ProcessLargeTextFile(db, filepath, current, total):
     lineNumber = 0
     with open(filepath, "r") as input_file:
         for line in input_file:
@@ -48,7 +48,7 @@ def ProcessLargeTextFile(db, filepath):
             post = json.loads(line)
             c = db.cursor()
             print(
-                f'Processing post id: {post["id"]}, file: {filepath}, line number: {lineNumber}')
+                f'Processing post id: {post["id"]}, file: {filepath}, line number: {lineNumber} Progress: {current}/{total}')
             ensureRating(c, post['rating'])
             insertTags(c, post['id'], post['tags'])
             createPost(c, post)
@@ -78,13 +78,13 @@ def createIndex(c):
 def main():
     currentFile = 0
     db = sqlite3.connect(sys.argv[2])
-    meta_files = glob.glob(f'{sys.argv[1]}/*')
+    meta_files = glob.glob(f'{sys.argv[1]}/**/*')
     total_files = meta_files.__len__()
     print(f'Total metafiles to import: {total_files}')
     for file in meta_files:
         currentFile += 1
         print(f'Processing: {file} {currentFile}/{total_files}')
-        ProcessLargeTextFile(db, file)
+        ProcessLargeTextFile(db, file, currentFile, total_files)
     print('Finished importing in bulk, updating stats...')
     c = db.cursor()
     updateStat(c)
