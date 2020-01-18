@@ -23,7 +23,7 @@ def insertTags(c, postId, tags):
 
 def ensureTag(c, tag):
     c.execute(
-        'INSERT OR IGNORE INTO tags (id, name, category) VALUES (?, ?, ?)', (int(tag['id']), tag['name'], tag['category']))
+        'INSERT OR IGNORE INTO tags (tag_id, name, category) VALUES (?, ?, ?)', (tag['id'], tag['name'], tag['category']))
 
 
 def ensureRating(c, rating):
@@ -70,9 +70,11 @@ def createIndex(c):
     c.execute('DROP INDEX IF EXISTS pt_post_id')
     c.execute('DROP INDEX IF EXISTS pt_tag_id')
     c.execute('DROP INDEX IF EXISTS p_post_id')
+    c.execute('DROP INDEX IF EXISTS t_tag_id')
     c.execute('CREATE INDEX pt_post_id ON post_tags (post_id)')
     c.execute('CREATE INDEX pt_tag_id ON post_tags (tag_id)')
     c.execute('CREATE INDEX p_post_id ON posts (post_id)')
+    c.execute('CREATE INDEX t_tag_id ON tags (tag_id)')
 
 
 def main():
