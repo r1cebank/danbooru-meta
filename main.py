@@ -16,14 +16,14 @@ def insertTags(c, postId, tags):
     post_tags = []
     for tag in tags:
         ensureTag(c, tag)
-        post_tags.append((postId, tag['id']))
+        post_tags.append((postId, int(tag['id'])))
     c.executemany(
         'INSERT OR IGNORE INTO post_tags (post_id, tag_id) VALUES (?, ?)', post_tags)
 
 
 def ensureTag(c, tag):
     c.execute(
-        'INSERT OR IGNORE INTO tags (tag_id, name, category) VALUES (?, ?, ?)', (tag['id'], tag['name'], tag['category']))
+        'INSERT OR IGNORE INTO tags (tag_id, name, category) VALUES (?, ?, ?)', (int(tag['id']), tag['name'], tag['category']))
 
 
 def ensureRating(c, rating):
@@ -34,7 +34,7 @@ def ensureRating(c, rating):
 def createPost(c, post):
     c.execute(
         'INSERT OR IGNORE INTO posts (post_id, md5, rating, width, height, file_ext, file_size, source, pixiv_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', (
-            post['id'], post['md5'], post['rating'], post['image_width'], post[
+            int(post['id']), post['md5'], post['rating'], post['image_width'], post[
                 'image_height'], post['file_ext'], post['file_size'], post['source'], post['pixiv_id']
         )
     )
@@ -50,7 +50,7 @@ def ProcessLargeTextFile(db, filepath, current, total):
             print(
                 f'Processing post id: {post["id"]}, file: {filepath}, line number: {lineNumber} Progress: {current}/{total}')
             ensureRating(c, post['rating'])
-            insertTags(c, post['id'], post['tags'])
+            insertTags(c, int(post['id']), post['tags'])
             createPost(c, post)
             if lineNumber % COMMIT_INTERVAL == 0:
                 db.commit()
@@ -59,11 +59,11 @@ def ProcessLargeTextFile(db, filepath, current, total):
 
 def updateStat(c):
     c.execute(
-        'UPDATE stat set num_posts=(select count(rowid) as post_count from posts)')
+        'UPDATE stats set num_posts=(select count(rowid) as post_count from posts)')
     c.execute(
-        'UPDATE stat set num_tags=(select count(rowid) as tag_count from tags)')
+        'UPDATE stats set num_tags=(select count(rowid) as tag_count from tags)')
     c.execute(
-        'UPDATE stat set num_ratings=(select count(rowid) as rating_count from ratings)')
+        'UPDATE stats set num_ratings=(select count(rowid) as rating_count from ratings)')
 
 
 def createIndex(c):
@@ -71,10 +71,12 @@ def createIndex(c):
     c.execute('DROP INDEX IF EXISTS pt_tag_id')
     c.execute('DROP INDEX IF EXISTS p_post_id')
     c.execute('DROP INDEX IF EXISTS t_tag_id')
+    c.execute('DROP INDEX IF EXISTS t_tag_name ')
     c.execute('CREATE INDEX pt_post_id ON post_tags (post_id)')
     c.execute('CREATE INDEX pt_tag_id ON post_tags (tag_id)')
     c.execute('CREATE INDEX p_post_id ON posts (post_id)')
     c.execute('CREATE INDEX t_tag_id ON tags (tag_id)')
+    c.execute('CREATE INDEX t_tag_name ON tags (name)')
 
 
 def main():
