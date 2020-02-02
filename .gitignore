@@ -2,3 +2,4 @@ danbooru.db
 .vscode
 .env
 test_data
+metadata.sqlite3
